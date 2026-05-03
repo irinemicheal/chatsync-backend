@@ -20,6 +20,8 @@ const io = new Server(server, {
 app.use(express.json());
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/messages", require("./routes/messageRoutes"));
+app.use("/api/users", require("./routes/userRoutes"));
 
 // Store online users
 const onlineUsers = {};
