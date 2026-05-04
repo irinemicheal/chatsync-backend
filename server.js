@@ -16,8 +16,8 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-
-app.use(express.json());
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ limit: "20mb", extended: true }));
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/messages", require("./routes/messageRoutes"));
@@ -37,13 +37,13 @@ io.on("connection", (socket) => {
   });
 
   // Send message
-  socket.on("sendMessage", (data) => {
-    const { receiverId, message } = data;
-    const receiverSocketId = onlineUsers[receiverId];
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("receiveMessage", message);
-    }
-  });
+socket.on("sendMessage", (data) => {
+  const { receiverId, message } = data;
+  const receiverSocketId = onlineUsers[receiverId];
+  if (receiverSocketId) {
+    io.to(receiverSocketId).emit("receiveMessage", message);
+  }
+});
 
   // Typing indicator
   socket.on("typing", (data) => {

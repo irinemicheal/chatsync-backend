@@ -18,7 +18,16 @@ const signup = async (req, res) => {
     const user = await User.create({ fullName, email, password: hashedPassword });
 
     const token = generateToken(user._id);
-    res.status(201).json({ token, user: { id: user._id, fullName: user.fullName, email: user.email } });
+    res.status(201).json({
+  token,
+  user: {
+    id: user._id,
+    fullName: user.fullName,
+    email: user.email,
+    profilePic: user.profilePic || "",
+    bio: user.bio || "",
+  },
+});
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -28,7 +37,6 @@ const signup = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
@@ -36,10 +44,48 @@ const login = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
     const token = generateToken(user._id);
-    res.json({ token, user: { id: user._id, fullName: user.fullName, email: user.email } });
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        profilePic: user.profilePic || "",
+        bio: user.bio || "",
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-module.exports = { signup, login };
+const updateProfile = async (req, res) => {
+  try {
+    const { fullName, bio, profilePic } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { fullName, bio, profilePic },
+      { new: true }
+    ).select("-password");
+
+    res.json({
+      id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      bio: user.bio,
+      profilePic: user.profilePic,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+const deleteAccount = async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.user._id);
+    res.json({ message: "Account deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = { signup, login, updateProfile, deleteAccount };
